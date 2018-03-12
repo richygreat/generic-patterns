@@ -1,6 +1,5 @@
 package com.github.richygreat.gp.config;
 
-import java.util.Comparator;
 import java.util.List;
 
 import com.github.richygreat.gp.exception.AmbiguousPairConfigException;
@@ -15,10 +14,16 @@ public class PairConfig {
 	private String key;
 	private String value;
 
+	/**
+	 * Send reverse sorted lsPairConfig based on getLevel and SearchConfig object
+	 * 
+	 * @param lsPairConfig
+	 * @param searchConfig
+	 * @return Found PairConfig
+	 */
 	public static PairConfig getConfig(List<PairConfig> lsPairConfig, PairConfig searchConfig) {
 		PairConfig foundConfig = null;
 		if (lsPairConfig != null && !lsPairConfig.isEmpty()) {
-			lsPairConfig.sort(Comparator.comparing(PairConfig::getLevel).reversed());
 			int currentLevel = lsPairConfig.get(0).getLevel();
 			int searchLevel = searchConfig.getLevel();
 			for (PairConfig pairConfig : lsPairConfig) {
@@ -80,6 +85,9 @@ public class PairConfig {
 				return false;
 		} else if (!key.equals(other.key))
 			return false;
+
+		// TODO Partial Match Code
+
 		if (l1 == null) {
 			if (other.l1 != null)
 				return false;

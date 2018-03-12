@@ -1,15 +1,11 @@
 package com.github.richygreat.gp.config;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import java.util.Comparator;
+import java.util.List;
 
-@Entity
+import com.github.richygreat.gp.exception.AmbiguousPairConfigException;
+
 public class PairConfig {
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long configId;
 	private String l1;
 	private String r1;
 	private String l2;
@@ -19,6 +15,34 @@ public class PairConfig {
 	private String key;
 	private String value;
 
+	public static PairConfig getConfig(List<PairConfig> lsPairConfig, PairConfig searchConfig) {
+		PairConfig foundConfig = null;
+		if (lsPairConfig != null && !lsPairConfig.isEmpty()) {
+			lsPairConfig.sort(Comparator.comparing(PairConfig::getLevel).reversed());
+			int currentLevel = lsPairConfig.get(0).getLevel();
+			int searchLevel = searchConfig.getLevel();
+			for (PairConfig pairConfig : lsPairConfig) {
+				if (searchLevel < pairConfig.getLevel()) {
+					currentLevel = pairConfig.getLevel();
+					continue;
+				} else if (foundConfig != null && currentLevel > pairConfig.getLevel()) {
+					break;
+				} else if (pairConfig.equals(foundConfig)) {
+					throw new AmbiguousPairConfigException("");
+				} else {
+					if (currentLevel > pairConfig.getLevel()) {
+						currentLevel = pairConfig.getLevel();
+						searchConfig.levelDown(currentLevel);
+					}
+					if (pairConfig.equals(searchConfig)) {
+						foundConfig = pairConfig;
+					}
+				}
+			}
+		}
+		return foundConfig;
+	}
+
 	@Override
 	public String toString() {
 		return "PairConfig [l1=" + l1 + ", r1=" + r1 + ", l2=" + l2 + ", r2=" + r2 + ", l3=" + l3 + ", r3=" + r3
@@ -26,6 +50,67 @@ public class PairConfig {
 	}
 
 	public PairConfig() {
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + ((l1 == null) ? 0 : l1.hashCode());
+		result = prime * result + ((l2 == null) ? 0 : l2.hashCode());
+		result = prime * result + ((l3 == null) ? 0 : l3.hashCode());
+		result = prime * result + ((r1 == null) ? 0 : r1.hashCode());
+		result = prime * result + ((r2 == null) ? 0 : r2.hashCode());
+		result = prime * result + ((r3 == null) ? 0 : r3.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PairConfig other = (PairConfig) obj;
+		if (key == null) {
+			if (other.key != null)
+				return false;
+		} else if (!key.equals(other.key))
+			return false;
+		if (l1 == null) {
+			if (other.l1 != null)
+				return false;
+		} else if (!l1.equals(other.l1))
+			return false;
+		if (l2 == null) {
+			if (other.l2 != null)
+				return false;
+		} else if (!l2.equals(other.l2))
+			return false;
+		if (l3 == null) {
+			if (other.l3 != null)
+				return false;
+		} else if (!l3.equals(other.l3))
+			return false;
+		if (r1 == null) {
+			if (other.r1 != null)
+				return false;
+		} else if (!r1.equals(other.r1))
+			return false;
+		if (r2 == null) {
+			if (other.r2 != null)
+				return false;
+		} else if (!r2.equals(other.r2))
+			return false;
+		if (r3 == null) {
+			if (other.r3 != null)
+				return false;
+		} else if (!r3.equals(other.r3))
+			return false;
+		return true;
 	}
 
 	public PairConfig(String l1, String r1, String l2, String r2, String l3, String r3, String key, String value) {
@@ -37,6 +122,25 @@ public class PairConfig {
 		this.r3 = r3;
 		this.key = key;
 		this.value = value;
+	}
+
+	public void levelDown(int newLevel) {
+		if (newLevel == 2) {
+			l3 = null;
+			r3 = null;
+		} else if (newLevel == 1) {
+			l3 = null;
+			r3 = null;
+			l2 = null;
+			r2 = null;
+		} else if (newLevel == 0) {
+			l3 = null;
+			r3 = null;
+			l2 = null;
+			r2 = null;
+			l1 = null;
+			r1 = null;
+		}
 	}
 
 	public int getLevel() {
@@ -114,13 +218,4 @@ public class PairConfig {
 	public void setValue(String value) {
 		this.value = value;
 	}
-
-	public long getConfigId() {
-		return configId;
-	}
-
-	public void setConfigId(long configId) {
-		this.configId = configId;
-	}
-
 }
